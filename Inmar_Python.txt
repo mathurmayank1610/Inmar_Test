@@ -1,6 +1,4 @@
 Question 3:
-Question #5) Given an integer array nums, write a Python function that returns True if the
-array has duplicates. Otherwise, the function should return False.
 
 3a) Write a simple block of Python code that (a) reads the input file (and all of its transactions)
 and (b) calculates the average transaction amount across all records.
