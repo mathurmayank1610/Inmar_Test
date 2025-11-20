@@ -16,8 +16,9 @@ WITH Q2 AS
 FROM `<project>.<dataset>.product` 
 group by 1)
 SELECT D1.DepartmentName,Q2.UnitPrice FROM Q2 
-RIGHT OUTER JOIN `vf-scmuat-datahub-25e7.vfscmuat_dh_lake_comms_uk_indirect_gold_s.dept` D1 
+RIGHT OUTER JOIN `<project>.<dataset>.dept` D1 
 on Q2.DepartmentID=D1.ID;
+
 ##############################################################################################
 --9. Question:
 
