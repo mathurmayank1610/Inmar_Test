@@ -1,0 +1,73 @@
+--1. Question:
+
+WITH Q1 AS (
+SELECT DEPT,SUM(SALARY) AS TOTAL_PAYROLL  
+FROM `<project>.<dataset>.employee`  GROUP BY 1
+) SELECT T1.DEPT,COUNT(*) AS EMP_COUNT FROM Q1 
+INNER JOIN `<project>.<dataset>.employee` T1 
+ON Q1.DEPT=T1.DEPT
+WHERE Q1.TOTAL_PAYROLL>15000 GROUP BY 1 ORDER BY 2 DESC;
+#############################################################################################
+
+--2. Question:
+
+WITH Q2 AS
+(SELECT DepartmentID,max(UnitPrice) as UnitPrice 
+FROM `<project>.<dataset>.product` 
+group by 1)
+SELECT D1.DepartmentName,Q2.UnitPrice FROM Q2 
+RIGHT OUTER JOIN `vf-scmuat-datahub-25e7.vfscmuat_dh_lake_comms_uk_indirect_gold_s.dept` D1 
+on Q2.DepartmentID=D1.ID;
+##############################################################################################
+--9. Question:
+
+select redemptionDate,redemptionCount 
+FROM `<project>.<dataset>.tblRedemptions-ByDay` T1
+
+inner join `v<project>.<dataset>.tblRetailers` T2
+
+ON T1.retailerId=T2.id
+
+where  T2.retailerName='ABC Store' and redemptionDate >='2023-10-30' and redemptionDate <='2023-11-05'
+
+QUALIFY ROW_NUMBER() OVER (PARTITION BY redemptionDate ORDER BY T1.createDateTime desc)=1
+
+order by 1
+##############################################################################################
+--1. Which date had the least number of redemptions and what was the redemption count?
+--Ans: Date=2023-11-04 and redemptionCount=3702
+
+--2. Which date had the most number of redemptions and what was the redemption count?
+--Ans: Date=2023-11-04 and redemptionCount=5224
+
+--3. What was the createDateTime for each redemptionCount in questions 1 and 2?
+--Ans: we cannot find createDateTime with the query written above as it has only 2 columns, we --need to modify this to include this column.
+--For Q1: createDateTime=2023-11-06 11:00:00 UTC
+--For Q2: createDateTime=2023-11-05 11:00:00 UTC
+
+--4. 4. Is there another method you can use to pull back the most recent redemption count, by
+redemption date, for the date range 2023-10-30 to 2023-11-05, for retailer "ABC Store"?
+In words, describe how you would do this (no need to write a query, unless you’d like to).
+
+-Ans: We can use CTE to first filter the records for ABC store and then join to fetch most 
+--recent count.
+--Query-:
+WITH T2 AS (
+    SELECT id 
+    FROM `<project>.<dataset>.tblRetailers`
+    WHERE retailerName = 'ABC Store'
+)
+
+SELECT 
+    redemptionDate,
+    redemptionCount 
+FROM `<project>.<dataset>.tblRedemptions-ByDay` T1
+INNER JOIN T2
+    ON T1.retailerId = T2.id
+WHERE 
+    redemptionDate >= '2023-10-30' AND redemptionDate <= '2023-11-05'
+QUALIFY 
+    ROW_NUMBER() OVER (PARTITION BY redemptionDate ORDER BY T1.createDateTime DESC) = 1
+ORDER BY 1;
+
+##############################################################################################
