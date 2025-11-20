@@ -1,0 +1,435 @@
+{\rtf1\ansi\ansicpg1252\cocoartf2822
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fswiss\fcharset0 Helvetica;\f1\froman\fcharset0 TimesNewRomanPSMT;\f2\froman\fcharset0 Times-Bold;
+\f3\froman\fcharset0 Times-Roman;\f4\fswiss\fcharset0 Arial-BoldMT;\f5\fswiss\fcharset0 ArialMT;
+}
+{\colortbl;\red255\green255\blue255;\red239\green239\blue239;}
+{\*\expandedcolortbl;;\csgenericrgb\c93725\c93725\c93725;}
+\paperw11900\paperh16840\margl1440\margr1440\vieww11520\viewh8400\viewkind0
+\deftab709
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardeftab709\partightenfactor0
+
+\f0\fs24 \cf0 # Question 8: GCP ETL Design:
+\f1 \
+
+\f0 \
+\pard\pardeftab709\sa319\partightenfactor0
+
+\f2\b \cf0 \expnd0\expndtw0\kerning0
+1. Extraction (Data Ingestion and Archival):
+\f1\b0 \kerning1\expnd0\expndtw0 \
+
+\f2\b \expnd0\expndtw0\kerning0
+Google Cloud Storage (GCS) :
+\f1\b0 \kerning1\expnd0\expndtw0 \
+\pard\pardeftab709\sa240\partightenfactor0
+
+\f3 \cf0 \expnd0\expndtw0\kerning0
+GCS will serve as the 
+\f2\b Data Lake
+\f3\b0  for both the ingestion and the archival requirements.We will create 2 buckets for raw and transformed output each.To satisfy the partitioning requirement, objects will be stored using a hive-partitioned folder structure.
+\f1 \kerning1\expnd0\expndtw0 \
+\pard\pardeftab709\sa319\partightenfactor0
+
+\f2\b \cf0 \expnd0\expndtw0\kerning0
+Cloud Composer (Apache Airflow) :
+\f1\b0 \kerning1\expnd0\expndtw0 \
+\pard\pardeftab709\sa319\partightenfactor0
+
+\f3 \cf0 \expnd0\expndtw0\kerning0
+Cloud composer will trigger a DAG which will extract the data from legacy database and will be scheduled to run daily. This DAG can in turn trigger a Data fusion pipeline to fetch data from database and create raw csv files and place them in the raw GCS bucket.
+\f1 \kerning1\expnd0\expndtw0 \
+\pard\pardeftab709\sa319\partightenfactor0
+
+\f2\b \cf0 \expnd0\expndtw0\kerning0
+2. Transformation:
+\f1\b0 \kerning1\expnd0\expndtw0 \
+
+\f2\b \expnd0\expndtw0\kerning0
+Cloud Data Fusion or (Pyspark Job running on dataproc cluster):
+\f1\b0 \kerning1\expnd0\expndtw0 \
+\pard\pardeftab709\sa319\partightenfactor0
+
+\f3 \cf0 We can create a CDF pipeline or pyspark job to read the csv files from raw bucket perform the filter, join etc transformations and create 2 outputs , one as CSV to be stored in transformed bucket and another to load BQ.
+\f1 \
+\pard\pardeftab709\sa319\partightenfactor0
+
+\f2\b \cf0 \expnd0\expndtw0\kerning0
+3. Load :
+\f1\b0 \kerning1\expnd0\expndtw0 \
+\pard\pardeftab709\sa319\partightenfactor0
+
+\f3 \cf0 \expnd0\expndtw0\kerning0
+Write the final aggregated results into BigQuery tables (likely partitioned by ingestion time or a specific business date column).
+\f1 \kerning1\expnd0\expndtw0 \
+\pard\tx720\tx1440\pardeftab709\sa240\partightenfactor0
+
+\f2\b \cf0 \expnd0\expndtw0\kerning0
+###########################################################################################
+\f1\b0 \kerning1\expnd0\expndtw0 \
+\pard\pardeftab709\sa319\partightenfactor0
+
+\f3 \cf0 \
+#Question 10 : Pharmacy DB Design:
+\f1 \
+
+\f3 We will use Star schema to design this in a data warehousing system so that it will be easy for reporting as well.
+\f1 \
+\pard\pardeftab709\sa319\partightenfactor0
+
+\f2\b \cf0 \
+\
+1. Fact Table : FACT_PHARMA_SALES : 
+\f3\b0 This will have keys from all the dimensions and measurable facts:
+\f1 \
+
+\itap1\trowd \taflags1 \trgaph108\trleft-108 \trbrdrt\brdrnil \trbrdrl\brdrnil \trbrdrr\brdrnil 
+\clvertalc \clcbpat2 \clbrdrt\brdrs\brdrw20\brdrcf0 \clbrdrl\brdrs\brdrw20\brdrcf0 \clbrdrb\brdrs\brdrw20\brdrcf0 \clbrdrr\brdrs\brdrw20\brdrcf0 \clpadt160 \clpadl160 \clpadb160 \clpadr160 \gaph\cellx2880
+\clvertalc \clcbpat2 \clbrdrt\brdrs\brdrw20\brdrcf0 \clbrdrl\brdrs\brdrw20\brdrcf0 \clbrdrb\brdrs\brdrw20\brdrcf0 \clbrdrr\brdrs\brdrw20\brdrcf0 \clpadt160 \clpadl160 \clpadb160 \clpadr160 \gaph\cellx5760
+\clvertalc \clcbpat2 \clbrdrt\brdrs\brdrw20\brdrcf0 \clbrdrl\brdrs\brdrw20\brdrcf0 \clbrdrb\brdrs\brdrw20\brdrcf0 \clbrdrr\brdrs\brdrw20\brdrcf0 \clpadt160 \clpadl160 \clpadb160 \clpadr160 \gaph\cellx8640
+\pard\intbl\itap1\pardeftab709\partightenfactor0
+
+\f4\b \cf0 \expnd0\expndtw0\kerning0
+Column Name
+\f1\b0 \kerning1\expnd0\expndtw0 \cell 
+\pard\intbl\itap1\pardeftab709\partightenfactor0
+
+\f4\b \cf0 \expnd0\expndtw0\kerning0
+Data Type
+\f1\b0 \kerning1\expnd0\expndtw0 \cell 
+\pard\intbl\itap1\pardeftab709\partightenfactor0
+
+\f4\b \cf0 \expnd0\expndtw0\kerning0
+Constraints/Description
+\f1\b0 \kerning1\expnd0\expndtw0 \cell \row
+
+\itap1\trowd \taflags1 \trgaph108\trleft-108 \trbrdrl\brdrnil \trbrdrr\brdrnil 
+\clvertalc \clshdrawnil \clbrdrt\brdrs\brdrw20\brdrcf0 \clbrdrl\brdrs\brdrw20\brdrcf0 \clbrdrb\brdrs\brdrw20\brdrcf0 \clbrdrr\brdrs\brdrw20\brdrcf0 \clpadt160 \clpadl160 \clpadb160 \clpadr160 \gaph\cellx2880
+\clvertalc \clshdrawnil \clbrdrt\brdrs\brdrw20\brdrcf0 \clbrdrl\brdrs\brdrw20\brdrcf0 \clbrdrb\brdrs\brdrw20\brdrcf0 \clbrdrr\brdrs\brdrw20\brdrcf0 \clpadt160 \clpadl160 \clpadb160 \clpadr160 \gaph\cellx5760
+\clvertalc \clshdrawnil \clbrdrt\brdrs\brdrw20\brdrcf0 \clbrdrl\brdrs\brdrw20\brdrcf0 \clbrdrb\brdrs\brdrw20\brdrcf0 \clbrdrr\brdrs\brdrw20\brdrcf0 \clpadt160 \clpadl160 \clpadb160 \clpadr160 \gaph\cellx8640
+\pard\intbl\itap1\pardeftab709\partightenfactor0
+
+\f5 \cf0 \expnd0\expndtw0\kerning0
+sales_key
+\f1 \kerning1\expnd0\expndtw0 \cell 
+\pard\intbl\itap1\pardeftab709\partightenfactor0
+
+\f5 \cf0 \expnd0\expndtw0\kerning0
+INT
+\f1 \kerning1\expnd0\expndtw0 \cell 
+\pard\intbl\itap1\pardeftab709\partightenfactor0
+
+\f5 \cf0 \expnd0\expndtw0\kerning0
+PK, surrogate key for unique line item
+\f1 \kerning1\expnd0\expndtw0 \cell \row
+
+\itap1\trowd \taflags1 \trgaph108\trleft-108 \trbrdrl\brdrnil \trbrdrr\brdrnil 
+\clvertalc \clshdrawnil \clbrdrt\brdrs\brdrw20\brdrcf0 \clbrdrl\brdrs\brdrw20\brdrcf0 \clbrdrb\brdrs\brdrw20\brdrcf0 \clbrdrr\brdrs\brdrw20\brdrcf0 \clpadt160 \clpadl160 \clpadb160 \clpadr160 \gaph\cellx2880
+\clvertalc \clshdrawnil \clbrdrt\brdrs\brdrw20\brdrcf0 \clbrdrl\brdrs\brdrw20\brdrcf0 \clbrdrb\brdrs\brdrw20\brdrcf0 \clbrdrr\brdrs\brdrw20\brdrcf0 \clpadt160 \clpadl160 \clpadb160 \clpadr160 \gaph\cellx5760
+\clvertalc \clshdrawnil \clbrdrt\brdrs\brdrw20\brdrcf0 \clbrdrl\brdrs\brdrw20\brdrcf0 \clbrdrb\brdrs\brdrw20\brdrcf0 \clbrdrr\brdrs\brdrw20\brdrcf0 \clpadt160 \clpadl160 \clpadb160 \clpadr160 \gaph\cellx8640
+\pard\intbl\itap1\pardeftab709\partightenfactor0
+
+\f5 \cf0 \expnd0\expndtw0\kerning0
+date_key
+\f1 \kerning1\expnd0\expndtw0 \cell 
+\pard\intbl\itap1\pardeftab709\partightenfactor0
+
+\f5 \cf0 \expnd0\expndtw0\kerning0
+INT
+\f1 \kerning1\expnd0\expndtw0 \cell 
+\pard\intbl\itap1\pardeftab709\partightenfactor0
+
+\f5 \cf0 \expnd0\expndtw0\kerning0
+FK to Dim_Date, for transaction date
+\f1 \kerning1\expnd0\expndtw0 \cell \row
+
+\itap1\trowd \taflags1 \trgaph108\trleft-108 \trbrdrl\brdrnil \trbrdrr\brdrnil 
+\clvertalc \clshdrawnil \clbrdrt\brdrs\brdrw20\brdrcf0 \clbrdrl\brdrs\brdrw20\brdrcf0 \clbrdrb\brdrs\brdrw20\brdrcf0 \clbrdrr\brdrs\brdrw20\brdrcf0 \clpadt160 \clpadl160 \clpadb160 \clpadr160 \gaph\cellx2880
+\clvertalc \clshdrawnil \clbrdrt\brdrs\brdrw20\brdrcf0 \clbrdrl\brdrs\brdrw20\brdrcf0 \clbrdrb\brdrs\brdrw20\brdrcf0 \clbrdrr\brdrs\brdrw20\brdrcf0 \clpadt160 \clpadl160 \clpadb160 \clpadr160 \gaph\cellx5760
+\clvertalc \clshdrawnil \clbrdrt\brdrs\brdrw20\brdrcf0 \clbrdrl\brdrs\brdrw20\brdrcf0 \clbrdrb\brdrs\brdrw20\brdrcf0 \clbrdrr\brdrs\brdrw20\brdrcf0 \clpadt160 \clpadl160 \clpadb160 \clpadr160 \gaph\cellx8640
+\pard\intbl\itap1\pardeftab709\partightenfactor0
+
+\f5 \cf0 \expnd0\expndtw0\kerning0
+store_key
+\f1 \kerning1\expnd0\expndtw0 \cell 
+\pard\intbl\itap1\pardeftab709\partightenfactor0
+
+\f5 \cf0 \expnd0\expndtw0\kerning0
+INT
+\f1 \kerning1\expnd0\expndtw0 \cell 
+\pard\intbl\itap1\pardeftab709\partightenfactor0
+
+\f5 \cf0 \expnd0\expndtw0\kerning0
+FK to Dim_Store, for sale location  
+\f1 \kerning1\expnd0\expndtw0 \cell \row
+
+\itap1\trowd \taflags1 \trgaph108\trleft-108 \trbrdrl\brdrnil \trbrdrr\brdrnil 
+\clvertalc \clshdrawnil \clbrdrt\brdrs\brdrw20\brdrcf0 \clbrdrl\brdrs\brdrw20\brdrcf0 \clbrdrb\brdrs\brdrw20\brdrcf0 \clbrdrr\brdrs\brdrw20\brdrcf0 \clpadt160 \clpadl160 \clpadb160 \clpadr160 \gaph\cellx2880
+\clvertalc \clshdrawnil \clbrdrt\brdrs\brdrw20\brdrcf0 \clbrdrl\brdrs\brdrw20\brdrcf0 \clbrdrb\brdrs\brdrw20\brdrcf0 \clbrdrr\brdrs\brdrw20\brdrcf0 \clpadt160 \clpadl160 \clpadb160 \clpadr160 \gaph\cellx5760
+\clvertalc \clshdrawnil \clbrdrt\brdrs\brdrw20\brdrcf0 \clbrdrl\brdrs\brdrw20\brdrcf0 \clbrdrb\brdrs\brdrw20\brdrcf0 \clbrdrr\brdrs\brdrw20\brdrcf0 \clpadt160 \clpadl160 \clpadb160 \clpadr160 \gaph\cellx8640
+\pard\intbl\itap1\pardeftab709\partightenfactor0
+
+\f5 \cf0 \expnd0\expndtw0\kerning0
+customer_key
+\f1 \kerning1\expnd0\expndtw0 \cell 
+\pard\intbl\itap1\pardeftab709\partightenfactor0
+
+\f5 \cf0 \expnd0\expndtw0\kerning0
+INT
+\f1 \kerning1\expnd0\expndtw0 \cell 
+\pard\intbl\itap1\pardeftab709\partightenfactor0
+
+\f5 \cf0 \expnd0\expndtw0\kerning0
+FK to Dim_Customer, for patient
+\f1 \kerning1\expnd0\expndtw0 \cell \row
+
+\itap1\trowd \taflags1 \trgaph108\trleft-108 \trbrdrl\brdrnil \trbrdrr\brdrnil 
+\clvertalc \clshdrawnil \clbrdrt\brdrs\brdrw20\brdrcf0 \clbrdrl\brdrs\brdrw20\brdrcf0 \clbrdrb\brdrs\brdrw20\brdrcf0 \clbrdrr\brdrs\brdrw20\brdrcf0 \clpadt160 \clpadl160 \clpadb160 \clpadr160 \gaph\cellx2880
+\clvertalc \clshdrawnil \clbrdrt\brdrs\brdrw20\brdrcf0 \clbrdrl\brdrs\brdrw20\brdrcf0 \clbrdrb\brdrs\brdrw20\brdrcf0 \clbrdrr\brdrs\brdrw20\brdrcf0 \clpadt160 \clpadl160 \clpadb160 \clpadr160 \gaph\cellx5760
+\clvertalc \clshdrawnil \clbrdrt\brdrs\brdrw20\brdrcf0 \clbrdrl\brdrs\brdrw20\brdrcf0 \clbrdrb\brdrs\brdrw20\brdrcf0 \clbrdrr\brdrs\brdrw20\brdrcf0 \clpadt160 \clpadl160 \clpadb160 \clpadr160 \gaph\cellx8640
+\pard\intbl\itap1\pardeftab709\partightenfactor0
+
+\f5 \cf0 \expnd0\expndtw0\kerning0
+medication_key
+\f1 \kerning1\expnd0\expndtw0 \cell 
+\pard\intbl\itap1\pardeftab709\partightenfactor0
+
+\f5 \cf0 \expnd0\expndtw0\kerning0
+INT
+\f1 \kerning1\expnd0\expndtw0 \cell 
+\pard\intbl\itap1\pardeftab709\partightenfactor0
+
+\f5 \cf0 \expnd0\expndtw0\kerning0
+FK to Dim_Medication, for medicine information 
+\f1 \kerning1\expnd0\expndtw0 \cell \row
+
+\itap1\trowd \taflags1 \trgaph108\trleft-108 \trbrdrl\brdrnil \trbrdrr\brdrnil 
+\clvertalc \clshdrawnil \clbrdrt\brdrs\brdrw20\brdrcf0 \clbrdrl\brdrs\brdrw20\brdrcf0 \clbrdrb\brdrs\brdrw20\brdrcf0 \clbrdrr\brdrs\brdrw20\brdrcf0 \clpadt160 \clpadl160 \clpadb160 \clpadr160 \gaph\cellx2880
+\clvertalc \clshdrawnil \clbrdrt\brdrs\brdrw20\brdrcf0 \clbrdrl\brdrs\brdrw20\brdrcf0 \clbrdrb\brdrs\brdrw20\brdrcf0 \clbrdrr\brdrs\brdrw20\brdrcf0 \clpadt160 \clpadl160 \clpadb160 \clpadr160 \gaph\cellx5760
+\clvertalc \clshdrawnil \clbrdrt\brdrs\brdrw20\brdrcf0 \clbrdrl\brdrs\brdrw20\brdrcf0 \clbrdrb\brdrs\brdrw20\brdrcf0 \clbrdrr\brdrs\brdrw20\brdrcf0 \clpadt160 \clpadl160 \clpadb160 \clpadr160 \gaph\cellx8640
+\pard\intbl\itap1\pardeftab709\partightenfactor0
+
+\f5 \cf0 \expnd0\expndtw0\kerning0
+employee_key
+\f1 \kerning1\expnd0\expndtw0 \cell 
+\pard\intbl\itap1\pardeftab709\partightenfactor0
+
+\f5 \cf0 \expnd0\expndtw0\kerning0
+INT
+\f1 \kerning1\expnd0\expndtw0 \cell 
+\pard\intbl\itap1\pardeftab709\partightenfactor0
+
+\f5 \cf0 \expnd0\expndtw0\kerning0
+FK to Dim_Employee, for staff information 
+\f1 \kerning1\expnd0\expndtw0 \cell \row
+
+\itap1\trowd \taflags1 \trgaph108\trleft-108 \trbrdrl\brdrnil \trbrdrr\brdrnil 
+\clvertalc \clshdrawnil \clbrdrt\brdrs\brdrw20\brdrcf0 \clbrdrl\brdrs\brdrw20\brdrcf0 \clbrdrb\brdrs\brdrw20\brdrcf0 \clbrdrr\brdrs\brdrw20\brdrcf0 \clpadt160 \clpadl160 \clpadb160 \clpadr160 \gaph\cellx2880
+\clvertalc \clshdrawnil \clbrdrt\brdrs\brdrw20\brdrcf0 \clbrdrl\brdrs\brdrw20\brdrcf0 \clbrdrb\brdrs\brdrw20\brdrcf0 \clbrdrr\brdrs\brdrw20\brdrcf0 \clpadt160 \clpadl160 \clpadb160 \clpadr160 \gaph\cellx5760
+\clvertalc \clshdrawnil \clbrdrt\brdrs\brdrw20\brdrcf0 \clbrdrl\brdrs\brdrw20\brdrcf0 \clbrdrb\brdrs\brdrw20\brdrcf0 \clbrdrr\brdrs\brdrw20\brdrcf0 \clpadt160 \clpadl160 \clpadb160 \clpadr160 \gaph\cellx8640
+\pard\intbl\itap1\pardeftab709\partightenfactor0
+
+\f5 \cf0 \expnd0\expndtw0\kerning0
+supplier_key
+\f1 \kerning1\expnd0\expndtw0 \cell 
+\pard\intbl\itap1\pardeftab709\partightenfactor0
+
+\f5 \cf0 \expnd0\expndtw0\kerning0
+INT
+\f1 \kerning1\expnd0\expndtw0 \cell 
+\pard\intbl\itap1\pardeftab709\partightenfactor0
+
+\f5 \cf0 \expnd0\expndtw0\kerning0
+FK to Dim_Supplier, for vendor management 
+\f1 \kerning1\expnd0\expndtw0 \cell \row
+
+\itap1\trowd \taflags1 \trgaph108\trleft-108 \trbrdrl\brdrnil \trbrdrr\brdrnil 
+\clvertalc \clshdrawnil \clbrdrt\brdrs\brdrw20\brdrcf0 \clbrdrl\brdrs\brdrw20\brdrcf0 \clbrdrb\brdrs\brdrw20\brdrcf0 \clbrdrr\brdrs\brdrw20\brdrcf0 \clpadt160 \clpadl160 \clpadb160 \clpadr160 \gaph\cellx2880
+\clvertalc \clshdrawnil \clbrdrt\brdrs\brdrw20\brdrcf0 \clbrdrl\brdrs\brdrw20\brdrcf0 \clbrdrb\brdrs\brdrw20\brdrcf0 \clbrdrr\brdrs\brdrw20\brdrcf0 \clpadt160 \clpadl160 \clpadb160 \clpadr160 \gaph\cellx5760
+\clvertalc \clshdrawnil \clbrdrt\brdrs\brdrw20\brdrcf0 \clbrdrl\brdrs\brdrw20\brdrcf0 \clbrdrb\brdrs\brdrw20\brdrcf0 \clbrdrr\brdrs\brdrw20\brdrcf0 \clpadt160 \clpadl160 \clpadb160 \clpadr160 \gaph\cellx8640
+\pard\intbl\itap1\pardeftab709\partightenfactor0
+
+\f5 \cf0 \expnd0\expndtw0\kerning0
+quantity_sold
+\f1 \kerning1\expnd0\expndtw0 \cell 
+\pard\intbl\itap1\pardeftab709\partightenfactor0
+
+\f5 \cf0 \expnd0\expndtw0\kerning0
+INT
+\f1 \kerning1\expnd0\expndtw0 \cell 
+\pard\intbl\itap1\pardeftab709\partightenfactor0
+
+\f5 \cf0 \expnd0\expndtw0\kerning0
+Measure: units sold by store
+\f1 \kerning1\expnd0\expndtw0 \cell \row
+
+\itap1\trowd \taflags1 \trgaph108\trleft-108 \trbrdrl\brdrnil \trbrdrr\brdrnil 
+\clvertalc \clshdrawnil \clbrdrt\brdrs\brdrw20\brdrcf0 \clbrdrl\brdrs\brdrw20\brdrcf0 \clbrdrb\brdrs\brdrw20\brdrcf0 \clbrdrr\brdrs\brdrw20\brdrcf0 \clpadt160 \clpadl160 \clpadb160 \clpadr160 \gaph\cellx2880
+\clvertalc \clshdrawnil \clbrdrt\brdrs\brdrw20\brdrcf0 \clbrdrl\brdrs\brdrw20\brdrcf0 \clbrdrb\brdrs\brdrw20\brdrcf0 \clbrdrr\brdrs\brdrw20\brdrcf0 \clpadt160 \clpadl160 \clpadb160 \clpadr160 \gaph\cellx5760
+\clvertalc \clshdrawnil \clbrdrt\brdrs\brdrw20\brdrcf0 \clbrdrl\brdrs\brdrw20\brdrcf0 \clbrdrb\brdrs\brdrw20\brdrcf0 \clbrdrr\brdrs\brdrw20\brdrcf0 \clpadt160 \clpadl160 \clpadb160 \clpadr160 \gaph\cellx8640
+\pard\intbl\itap1\pardeftab709\partightenfactor0
+
+\f5 \cf0 \expnd0\expndtw0\kerning0
+unit_price
+\f1 \kerning1\expnd0\expndtw0 \cell 
+\pard\intbl\itap1\pardeftab709\partightenfactor0
+
+\f5 \cf0 \expnd0\expndtw0\kerning0
+DECIMAL
+\f1 \kerning1\expnd0\expndtw0 \cell 
+\pard\intbl\itap1\pardeftab709\partightenfactor0
+
+\f5 \cf0 \expnd0\expndtw0\kerning0
+Measure: per-unit sale price
+\f1 \kerning1\expnd0\expndtw0 \cell \row
+
+\itap1\trowd \taflags1 \trgaph108\trleft-108 \trbrdrl\brdrnil \trbrdrr\brdrnil 
+\clvertalc \clshdrawnil \clbrdrt\brdrs\brdrw20\brdrcf0 \clbrdrl\brdrs\brdrw20\brdrcf0 \clbrdrb\brdrs\brdrw20\brdrcf0 \clbrdrr\brdrs\brdrw20\brdrcf0 \clpadt160 \clpadl160 \clpadb160 \clpadr160 \gaph\cellx2880
+\clvertalc \clshdrawnil \clbrdrt\brdrs\brdrw20\brdrcf0 \clbrdrl\brdrs\brdrw20\brdrcf0 \clbrdrb\brdrs\brdrw20\brdrcf0 \clbrdrr\brdrs\brdrw20\brdrcf0 \clpadt160 \clpadl160 \clpadb160 \clpadr160 \gaph\cellx5760
+\clvertalc \clshdrawnil \clbrdrt\brdrs\brdrw20\brdrcf0 \clbrdrl\brdrs\brdrw20\brdrcf0 \clbrdrb\brdrs\brdrw20\brdrcf0 \clbrdrr\brdrs\brdrw20\brdrcf0 \clpadt160 \clpadl160 \clpadb160 \clpadr160 \gaph\cellx8640
+\pard\intbl\itap1\pardeftab709\partightenfactor0
+
+\f5 \cf0 \expnd0\expndtw0\kerning0
+total_amount
+\f1 \kerning1\expnd0\expndtw0 \cell 
+\pard\intbl\itap1\pardeftab709\partightenfactor0
+
+\f5 \cf0 \expnd0\expndtw0\kerning0
+DECIMAL
+\f1 \kerning1\expnd0\expndtw0 \cell 
+\pard\intbl\itap1\pardeftab709\partightenfactor0
+
+\f5 \cf0 \expnd0\expndtw0\kerning0
+Measure: line item revenue (quantity * unit_price)
+\f1 \kerning1\expnd0\expndtw0 \cell \row
+
+\itap1\trowd \taflags1 \trgaph108\trleft-108 \trbrdrl\brdrnil \trbrdrr\brdrnil 
+\clvertalc \clshdrawnil \clbrdrt\brdrs\brdrw20\brdrcf0 \clbrdrl\brdrs\brdrw20\brdrcf0 \clbrdrb\brdrs\brdrw20\brdrcf0 \clbrdrr\brdrs\brdrw20\brdrcf0 \clpadt160 \clpadl160 \clpadb160 \clpadr160 \gaph\cellx2880
+\clvertalc \clshdrawnil \clbrdrt\brdrs\brdrw20\brdrcf0 \clbrdrl\brdrs\brdrw20\brdrcf0 \clbrdrb\brdrs\brdrw20\brdrcf0 \clbrdrr\brdrs\brdrw20\brdrcf0 \clpadt160 \clpadl160 \clpadb160 \clpadr160 \gaph\cellx5760
+\clvertalc \clshdrawnil \clbrdrt\brdrs\brdrw20\brdrcf0 \clbrdrl\brdrs\brdrw20\brdrcf0 \clbrdrb\brdrs\brdrw20\brdrcf0 \clbrdrr\brdrs\brdrw20\brdrcf0 \clpadt160 \clpadl160 \clpadb160 \clpadr160 \gaph\cellx8640
+\pard\intbl\itap1\pardeftab709\partightenfactor0
+
+\f5 \cf0 \expnd0\expndtw0\kerning0
+cost_price
+\f1 \kerning1\expnd0\expndtw0 \cell 
+\pard\intbl\itap1\pardeftab709\partightenfactor0
+
+\f5 \cf0 \expnd0\expndtw0\kerning0
+DECIMAL
+\f1 \kerning1\expnd0\expndtw0 \cell 
+\pard\intbl\itap1\pardeftab709\partightenfactor0
+
+\f5 \cf0 \expnd0\expndtw0\kerning0
+Measure: acquisition cost
+\f1 \kerning1\expnd0\expndtw0 \cell \row
+
+\itap1\trowd \taflags1 \trgaph108\trleft-108 \trbrdrl\brdrnil \trbrdrr\brdrnil 
+\clvertalc \clshdrawnil \clbrdrt\brdrs\brdrw20\brdrcf0 \clbrdrl\brdrs\brdrw20\brdrcf0 \clbrdrb\brdrs\brdrw20\brdrcf0 \clbrdrr\brdrs\brdrw20\brdrcf0 \clpadt160 \clpadl160 \clpadb160 \clpadr160 \gaph\cellx2880
+\clvertalc \clshdrawnil \clbrdrt\brdrs\brdrw20\brdrcf0 \clbrdrl\brdrs\brdrw20\brdrcf0 \clbrdrb\brdrs\brdrw20\brdrcf0 \clbrdrr\brdrs\brdrw20\brdrcf0 \clpadt160 \clpadl160 \clpadb160 \clpadr160 \gaph\cellx5760
+\clvertalc \clshdrawnil \clbrdrt\brdrs\brdrw20\brdrcf0 \clbrdrl\brdrs\brdrw20\brdrcf0 \clbrdrb\brdrs\brdrw20\brdrcf0 \clbrdrr\brdrs\brdrw20\brdrcf0 \clpadt160 \clpadl160 \clpadb160 \clpadr160 \gaph\cellx8640
+\pard\intbl\itap1\pardeftab709\partightenfactor0
+
+\f5 \cf0 \expnd0\expndtw0\kerning0
+discount_amount
+\f1 \kerning1\expnd0\expndtw0 \cell 
+\pard\intbl\itap1\pardeftab709\partightenfactor0
+
+\f5 \cf0 \expnd0\expndtw0\kerning0
+DECIMAL
+\f1 \kerning1\expnd0\expndtw0 \cell 
+\pard\intbl\itap1\pardeftab709\partightenfactor0
+
+\f5 \cf0 \expnd0\expndtw0\kerning0
+Measure: discount applied
+\f1 \kerning1\expnd0\expndtw0 \cell \row
+
+\itap1\trowd \taflags1 \trgaph108\trleft-108 \trbrdrl\brdrnil \trbrdrr\brdrnil 
+\clvertalc \clshdrawnil \clbrdrt\brdrs\brdrw20\brdrcf0 \clbrdrl\brdrs\brdrw20\brdrcf0 \clbrdrb\brdrs\brdrw20\brdrcf0 \clbrdrr\brdrs\brdrw20\brdrcf0 \clpadt160 \clpadl160 \clpadb160 \clpadr160 \gaph\cellx2880
+\clvertalc \clshdrawnil \clbrdrt\brdrs\brdrw20\brdrcf0 \clbrdrl\brdrs\brdrw20\brdrcf0 \clbrdrb\brdrs\brdrw20\brdrcf0 \clbrdrr\brdrs\brdrw20\brdrcf0 \clpadt160 \clpadl160 \clpadb160 \clpadr160 \gaph\cellx5760
+\clvertalc \clshdrawnil \clbrdrt\brdrs\brdrw20\brdrcf0 \clbrdrl\brdrs\brdrw20\brdrcf0 \clbrdrb\brdrs\brdrw20\brdrcf0 \clbrdrr\brdrs\brdrw20\brdrcf0 \clpadt160 \clpadl160 \clpadb160 \clpadr160 \gaph\cellx8640
+\pard\intbl\itap1\pardeftab709\partightenfactor0
+
+\f5 \cf0 \expnd0\expndtw0\kerning0
+load_date
+\f1 \kerning1\expnd0\expndtw0 \cell 
+\pard\intbl\itap1\pardeftab709\partightenfactor0
+
+\f5 \cf0 \expnd0\expndtw0\kerning0
+TIMESTAMP
+\f1 \kerning1\expnd0\expndtw0 \cell 
+\pard\intbl\itap1\pardeftab709\partightenfactor0
+
+\f5 \cf0 \expnd0\expndtw0\kerning0
+Metadata: load timestamp for audit
+\f1 \kerning1\expnd0\expndtw0 \cell \row
+
+\itap1\trowd \taflags1 \trgaph108\trleft-108 \trbrdrl\brdrnil \trbrdrt\brdrnil \trbrdrr\brdrnil 
+\clvertalc \clshdrawnil \clbrdrt\brdrs\brdrw20\brdrcf0 \clbrdrl\brdrs\brdrw20\brdrcf0 \clbrdrb\brdrs\brdrw20\brdrcf0 \clbrdrr\brdrs\brdrw20\brdrcf0 \clpadt160 \clpadl160 \clpadb160 \clpadr160 \gaph\cellx2880
+\clvertalc \clshdrawnil \clbrdrt\brdrs\brdrw20\brdrcf0 \clbrdrl\brdrs\brdrw20\brdrcf0 \clbrdrb\brdrs\brdrw20\brdrcf0 \clbrdrr\brdrs\brdrw20\brdrcf0 \clpadt160 \clpadl160 \clpadb160 \clpadr160 \gaph\cellx5760
+\clvertalc \clshdrawnil \clbrdrt\brdrs\brdrw20\brdrcf0 \clbrdrl\brdrs\brdrw20\brdrcf0 \clbrdrb\brdrs\brdrw20\brdrcf0 \clbrdrr\brdrs\brdrw20\brdrcf0 \clpadt160 \clpadl160 \clpadb160 \clpadr160 \gaph\cellx8640
+\pard\intbl\itap1\pardeftab709\partightenfactor0
+
+\f5 \cf0 \expnd0\expndtw0\kerning0
+source_system_id
+\f1 \kerning1\expnd0\expndtw0 \cell 
+\pard\intbl\itap1\pardeftab709\partightenfactor0
+
+\f5 \cf0 \expnd0\expndtw0\kerning0
+VARCHAR
+\f1 \kerning1\expnd0\expndtw0 \cell 
+\pard\intbl\itap1\pardeftab709\partightenfactor0
+
+\f5 \cf0 \expnd0\expndtw0\kerning0
+Metadata: to track source information
+\f1 \kerning1\expnd0\expndtw0 \cell \lastrow\row
+\pard\pardeftab709\sa319\partightenfactor0
+
+\f3 \cf0 \
+\pard\pardeftab709\sa240\partightenfactor0
+
+\f2\b \cf0 \expnd0\expndtw0\kerning0
+2. Dimension Tables :
+\f1\b0 \kerning1\expnd0\expndtw0 \
+
+\f2\b \expnd0\expndtw0\kerning0
+DIM_DATE (
+\f3\b0 date_key,full_date,year,month
+\f2\b )
+\f1\b0 \kerning1\expnd0\expndtw0 \
+
+\f2\b \expnd0\expndtw0\kerning0
+DIM_STORE (
+\f3\b0 store_key,store_name,city,state,address,active_flag
+\f2\b )
+\f1\b0 \kerning1\expnd0\expndtw0 \
+
+\f2\b \expnd0\expndtw0\kerning0
+DIM_CUSTOMER (
+\f3\b0 customer_key,customer name, age, gender, address
+\f2\b )
+\f1\b0 \kerning1\expnd0\expndtw0 \
+
+\f2\b \expnd0\expndtw0\kerning0
+DIM_SUPPLIER 
+\f3\b0 (supplier_key,supplier_name,contact)
+\f1 \kerning1\expnd0\expndtw0 \
+
+\f2\b \expnd0\expndtw0\kerning0
+DIM_MEDICINE 
+\f3\b0 (medication_key,medicine_name,price,category)
+\f1 \kerning1\expnd0\expndtw0 \
+
+\f2\b \expnd0\expndtw0\kerning0
+DIM_EMPLOYEE 
+\f3\b0 (employee_key, emp_name, role, manager_id)
+\f1 \kerning1\expnd0\expndtw0 \
+\pard\pardeftab709\sa240\partightenfactor0
+
+\f3 \cf0 \expnd0\expndtw0\kerning0
+\
+\
+\pard\pardeftab709\sa319\partightenfactor0
+\cf0 \kerning1\expnd0\expndtw0 \
+\pard\tx720\tx1440\pardeftab709\sa240\partightenfactor0
+\cf0 \expnd0\expndtw0\kerning0
+\
+}
